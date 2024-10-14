@@ -72,6 +72,33 @@ mysql> desc tasks;
 +---------+--------------+------+-----+---------+----------------+
 3 rows in set (0.01 sec)
 
+mysql> create user 'todoapp_user' identified by 'P@sswo0rd';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> grant all on todo_app.* to 'todoapp_user';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql>
+mysql>
+mysql> select host, user from mysql.user;
++-----------+--------------------+
+| host      | user               |
++-----------+--------------------+
+| %         | admin              |
+| %         | administrator      |
+| %         | ocirpl             |
+| %         | test               |
+| %         | todoapp_user       |
+| 127.0.0.1 | ociadmin           |
+| 127.0.0.1 | ocidbm             |
+| localhost | mysql.infoschema   |
+| localhost | mysql.session      |
+| localhost | mysql.sys          |
+| localhost | oracle-cloud-agent |
+| localhost | rrhhuser           |
++-----------+--------------------+
+12 rows in set (0.01 sec)
+
 ```
 
 
