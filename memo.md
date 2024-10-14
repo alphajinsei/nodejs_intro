@@ -20,6 +20,8 @@ npm start
 # 追加
 npm install mysql
 npm install mysql2
+npm install knex
+npx knex init　　　　★tododapp/配下にknexfile.jsが生成される
 ```
 
 
@@ -350,4 +352,36 @@ POST / 302 24.017 ms - 46
 GET / 200 3.169 ms - 432
 GET /stylesheets/style.css 304 0.730 ms - -
 
+```
+
+
+
+
+# chapter14 knex.jsでデータベースを操作しよう
+ 
+* 今回DB接続用クライアントはmysql2を利用している
+* 接続先DBはlocalhostではなくOCI上にある
+
+ことから、todoapp/knexfile.jsを以下のように修正
+
+```json
+// Update with your config settings.
+
+module.exports = {
+
+  development: {
+    client: "mysql2", // clientはmysqlに変更
+    connection: {
+      database: "todo_app",
+      user: "todoapp_user",
+      password: "P@ssw0rd",
+      host: 'my-mysql.sub10081004581.myvcn.oraclevcn.com',　// ホスト名を追加
+    },
+    pool: {
+      min: 2,
+      max: 10
+    },
+  },
+ //他も同様
+};
 ```
