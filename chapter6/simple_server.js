@@ -15,4 +15,5 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port);
-console.log(`The server hasa started and is listening on port number ${port}`);
+console.log(`The server has started and is listening on port number ${port}`);
+
