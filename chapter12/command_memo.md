@@ -72,7 +72,7 @@ mysql> desc tasks;
 +---------+--------------+------+-----+---------+----------------+
 3 rows in set (0.01 sec)
 
-mysql> create user 'todoapp_user' identified by 'P@sswo0rd';
+mysql> create user 'todoapp_user' identified by 'P@ssw0rd';
 Query OK, 0 rows affected (0.00 sec)
 
 mysql> grant all on todo_app.* to 'todoapp_user';
