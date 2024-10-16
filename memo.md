@@ -22,6 +22,7 @@ npm install mysql
 npm install mysql2
 npm install knex
 npx knex init　　　　★tododapp/配下にknexfile.jsが生成される
+npm install cookie-session
 ```
 
 
