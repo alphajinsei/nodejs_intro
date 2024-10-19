@@ -21,9 +21,11 @@ npm start
 npm install mysql
 npm install mysql2
 npm install knex
-npx knex init　　　　★tododapp/配下にknexfile.jsが生成される
+npx knex init    ★tododapp/配下にknexfile.jsが生成される
 npm install cookie-session
 npm install bcrypt@5.1.0
+npm install passport@0.5 passport-local
+npm install connect-flash
 ```
 
 
@@ -468,3 +470,141 @@ npm install bcrypt@5.1.0
 ```
 
 https://stackoverflow.com/questions/77334688/cpanel-error-lib64-libstdc-so-6-version-cxxabi-1-3-8-not-found
+
+# chapter18 passportを利用した認証を実装しよう
+
+* シリアライズ
+  * 一般的には、オブジェクト/クラスのデータをバイト列の形式にすること。クライアント・サーバ間で、ネットワーク越しにデータを送る際にこのような形式で送るため。
+  * ここでは、「ユーザー」というデータ/オブジェクト/クラスの塊の中から、ユーザーidの情報だけ抽出して簡便な形式に落とし込むことを指す模様。
+  * デシリアライズ：
+  * 一般的には、バイト列から元のオブジェクトを復元することを指す。
+  * ここでは、ユーザーidから、ユーザーというクラス/オブジェクトを復元することを指している模様
+
+今回のtodoappでは、
+* 認証が発生したタイミングで、「ユーザー」のうちユーザidの情報だけを抜き出し(シリアライズ)、クライアント側で持っているcookieにユーザーidの情報(=シリアライズ化された情報)を書き込んでおく。
+* それ以降、通信が発生するたびに、クライアントはcookieに保存された自分のユーザidの情報をサーバに毎回送信する。サーバ側では、受け取ったユーザidの情報から、都度対応する「ユーザ」というクラス/オブジェクト(id, ユーザー名, pwを持つ)の情報を復元(デシリアライズ)する
+という世界観で動いている。
+
+```sh
+npm install passport
+```
+した状態でログイン試行すると、以下のエラーになった。
+`TypeError: req.session.regenerate is not a function`と
+`TypeError: req.flash is not a function`でそれぞれエラーになっている。
+
+```sh
+[opc@my-instance4 todoapp]$ npm start 
+
+> todoapp@0.0.0 start
+> node ./bin/www
+
+GET /signin 304 30.545 ms - -
+TypeError: req.session.regenerate is not a function
+    at SessionManager.logIn (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/sessionmanager.js:28:15)
+    at IncomingMessage.req.login.req.logIn (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/http/request.js:39:26)
+    at Strategy.strategy.success (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/middleware/authenticate.js:265:13)
+    at verified (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport-local/lib/strategy.js:83:10)
+    at /home/opc/nodejs_intro/chapter18/todoapp/config/passport.js:36:18
+/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/middleware/authenticate.js:134
+          req.flash(type, msg);
+              ^
+
+TypeError: req.flash is not a function
+    at allFailed (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/middleware/authenticate.js:134:15)
+    at attempt (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/middleware/authenticate.js:183:28)
+    at Strategy.strategy.fail (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport/lib/middleware/authenticate.js:314:9)
+    at verified (/home/opc/nodejs_intro/chapter18/todoapp/node_modules/passport-local/lib/strategy.js:82:30)
+    at /home/opc/nodejs_intro/chapter18/todoapp/config/passport.js:43:16
+[opc@my-instance4 todoapp]$ 
+```
+
+### `TypeError: req.session.regenerate is not a function`のエラーについて
+
+chatgptによると、
+* cookie-sessionではなくexpress-session を使え
+* express-sessionではサーバ側でセッション情報を保管するが、cookie-sessionではセッション情報をクッキーとしてクライアント側に保存するので、`req.session.regenerate`といったサーバサイドのセッション操作をサポートしなくてエラーになっている
+とのこと。もっともらしいが未検証。今回はせっかくなのでクッキーによるセッション管理で続けたい。
+
+
+調べたところどうも直近版のpassportは後方互換性がなく類似のエラーが報告されていて、
+```sh
+npm install passport@0.5
+```
+でダウングレードしたところ解消。
+https://stackoverflow.com/questions/72375564/typeerror-req-session-regenerate-is-not-a-function-using-passport
+
+
+# `TypeError: req.flash is not a function`のエラーについて
+`connect-flash`なるモジュールのインストールが追加で必要だった。
+
+https://tyoshikawa1106.hatenablog.com/entry/2016/04/01/091509
+
+```sh
+npm install connect-flash
+```
+したのち、以下を追記して解消
+
+```sh
+const passport = require("passport");
+const LocalStrategy = require('passport-local');
+const knex = require("../db/knex");
+const bcrypt = require("bcrypt");
+const User = require("../models/user");
+const cookieSession = require("cookie-session");
+const secret = "secretCuisine123";
+const flash = require("connect-flash");　　★追記
+
+
+
+module.exports = function (app) {
+  passport.serializeUser(function (user, done) {
+    console.log("serializeUser");
+    done(null, user.id);
+  });
+  
+  passport.deserializeUser(async function (id, done) {
+    console.log("deserializeUser");
+    try {
+      const user = await User.findById(id);
+      done(null, user);
+    } catch (error){
+      done(error, null);
+    }
+  });
+
+  passport.use(new LocalStrategy({
+    usernameField: "username",
+    passwordField: "password",
+  }, function (username, password, done) {
+    knex("users")
+      .where({ name: username })
+      .select("*")
+      .then(async function (results) {
+        if (results.length === 0) {
+          return done(null, false, { message: "No User Found" });
+        } else if (await bcrypt.compare(password, results[0].password)) {
+          return done(null, results[0]);
+        } else {
+          return done(null, false, { message: "Invalid Password" });
+        }
+      })
+      .catch(function (err) {
+        console.error(err);
+        return done(null, false, { message: err.toString() });
+      });
+  }));
+
+  app.use(
+    cookieSession({
+      name: "session",
+      keys: [secret],
+
+      // Cookie Options
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    })
+  );
+  app.use(flash());　　★追記
+  app.use(passport.initialize());
+  app.use(passport.session());
+};
+```
