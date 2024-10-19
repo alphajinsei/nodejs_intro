@@ -1,5 +1,5 @@
 # todoappプロジェクト初期化時に実施したこと
-```
+```bash
 sudo su - 
 
 # Node.jsインストール
@@ -23,6 +23,7 @@ npm install mysql2
 npm install knex
 npx knex init　　　　★tododapp/配下にknexfile.jsが生成される
 npm install cookie-session
+npm install bcrypt@5.1.0
 ```
 
 
@@ -340,7 +341,7 @@ const connection = mysql.createConnection({
 
 
 
-```
+```sh
 [opc@my-instance4 todoapp]$ npm start 
 
 > todoapp@0.0.0 start
@@ -405,3 +406,65 @@ https://www.bootstrapcdn.com/
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 ```
+
+
+# chapter17 パスワードを安全に保存しよう
+
+```sh
+npm install bcrypt
+```
+したのち、`npm start`でサーバを立ち上げようとしたところ、以下のエラーに。
+
+```sh
+[opc@my-instance4 todoapp]$ npm start 
+
+> todoapp@0.0.0 start
+> node ./bin/www
+
+node:internal/modules/cjs/loader:1282
+  return process.dlopen(module, path.toNamespacedPath(filename));
+                 ^
+
+Error: /lib64/libstdc++.so.6: version `CXXABI_1.3.8' not found (required by /home/opc/nodejs_intro/chapter17/todoapp/node_modules/bcrypt/lib/binding/napi-v3/bcrypt_lib.node)
+    at Object.Module._extensions..node (node:internal/modules/cjs/loader:1282:18)
+    at Module.load (node:internal/modules/cjs/loader:1076:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:911:12)
+    at Module.require (node:internal/modules/cjs/loader:1100:19)
+    at require (node:internal/modules/cjs/helpers:119:18)
+    at Object.<anonymous> (/home/opc/nodejs_intro/chapter17/todoapp/node_modules/bcrypt/bcrypt.js:6:16)
+    at Module._compile (node:internal/modules/cjs/loader:1198:14)
+    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1252:10)
+    at Module.load (node:internal/modules/cjs/loader:1076:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:911:12) {
+  code: 'ERR_DLOPEN_FAILED'
+}
+```
+
+/lib64/libstdc++.so.6にCXXABI_1.3.8が入っていないとのエラー。
+確かに存在しない。暗号化モジュール(bcrypt)なので、「直近のライブラリを使え」とうるさいとか、そういう話と思われる
+```sh
+[opc@my-instance4 todoapp]$ strings /lib64/libstdc++.so.6 | grep CXXABI
+CXXABI_1.3
+CXXABI_1.3.1
+CXXABI_1.3.2
+CXXABI_1.3.3
+CXXABI_1.3.4
+CXXABI_1.3.5
+CXXABI_1.3.6
+CXXABI_1.3.7
+CXXABI_TM_1
+```
+
+yum で最新化しても解消せず。元のOSのバージョンによって決まる上限がある？
+```
+sudo su - 
+yum install gcc gcc-c++
+yum update libstdc++
+```
+
+結局、以下記事の通り、bcryptをダウングレードして解消した。
+```
+npm install bcrypt@5.1.0
+```
+
+https://stackoverflow.com/questions/77334688/cpanel-error-lib64-libstdc-so-6-version-cxxabi-1-3-8-not-found
