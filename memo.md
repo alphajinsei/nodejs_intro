@@ -394,6 +394,9 @@ module.exports = {
 Bootstrap CDNなるサイトからcssを引っ張ってきている
 https://www.bootstrapcdn.com/
 
+以下の指示通りに入れているだけ。
+https://getbootstrap.jp/docs/4.2/getting-started/introduction/
+
 以下をheadタグ内に入れてcssを読む
 ```html
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
