@@ -1,8 +1,11 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
 
-a {
-  color: #00B7FF;
+.todo-item {
+  display: flex; /* フレックスボックスを使って左右に要素を配置 */
+  justify-content: space-between; /* 左右の要素を両端に配置 */
+  align-items: center; /* 縦方向の位置を揃える */
+  margin-bottom: 10px; /* 各リスト項目の間に余白を追加 */
+  padding: 5px 10px; /* 各リスト項目内の余白 */
+  border: 1px solid #ddd; /* 各リスト項目の枠線 */
+  border-radius: 5px; /* 角を丸くする */
+  background-color: #f9f9f9; /* 背景色を追加 */
 }

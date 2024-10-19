@@ -7,6 +7,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="/stylesheets/style.css">
   </head>
   <body>
     <%- include('./header'); %>
@@ -15,7 +16,7 @@
       <div class="contaier m-3">
         <div class="row">
           <div class="col-md-6">
-            <form action="/" method="post">
+            <form action="/" method="post" class="m-3">
               <label>タスクの追加</label>
               <input required type="text" name="add" placeholder="何をする?">
               <input type="submit" value="追加">
@@ -24,7 +25,13 @@
           <div class="col-md-6">
             <ul>
               <% for (let todo of todos) { %>
-                <li><span><%= todo.content %></span></li>
+                <li class="todo-item mt-2 mb-2">
+                  <span><%= todo.content %></span>
+                  <form action="/done" method="post" >
+                    <input type="hidden" name="taskId" value="<%= todo.id %>">
+                    <input type="submit" value="Done">
+                  </form>
+                </li>
               <% } %>
             </ul>
           </div>
@@ -32,7 +39,7 @@
       </div>
     <% } else { %>
       <div class="contaier m-3">
-        <h1>Welcome to the TodoApp</h1>
+        <h1 class="display-4 ">Welcome to the TodoApp</h1>
         <a class="btn btn-primary"  href="/signup" role="btn">Sign up now!</a>
       </div>
     <% } %>
