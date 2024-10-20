@@ -15,7 +15,7 @@ sudo npm install -g --save ejs
 cd todoapp/
 express --view=ejs todoapp # ディレクトリが一式作成される
 npm install # 依存関係のあるモジュールを入れる。グローバル指定ではないのでカレントディレクトリのプロジェクトにのみ入る
-npm start 
+npm start # node;jsサーバの実行★
 
 # 追加
 npm install mysql
